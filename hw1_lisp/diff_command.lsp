@@ -12,6 +12,8 @@
 	(defvar x 0)
 	(defvar y 0)
 	(defvar end_mark 0)
+	(defvar first_enter_in 1)
+	(defvar the_same_counter_copy 0)
 	
 	;(list-length '(1 3 4)) can get total atom number!!!!
 
@@ -37,7 +39,9 @@
 		(close in2)
 	)
 	
+	  
 	(setq the_same_counter (list-length (intersection list1 list2 :test 'equal))) ; find the same atom number
+	(setq the_same_counter_copy (+ the_same_counter 1))
 	(setq counter1 (list-length list1))
 	(setq counter2 (list-length list2))
 	;(print counter1)
@@ -45,40 +49,130 @@
 	;(print(nth 1 list1))
 	;(print(nth 2 list1))
 	
-	
-(loop 
-	(setq nth_line1(nth x list1))	
-		(block inner
-			(loop
-				(setq nth_line2(nth y list2))
-				(cond ((equal nth_line1 nth_line2) (loop
-										(setq nth_line3(nth keyline list2)) 
-										(if (and (not (equal nth_line3 nil))(not(= keyline (- counter2 1)))) (format t "~C[32m+~a~%~C[00m" #\ESC nth_line3 #\ESC))
-										(if (= keyline (- counter2 1)) (format t " ~a~%" nth_line3))
-										(if (= keyline (- counter2 1)) (setq end_mark(+ end_mark 1)))
-										(if (= end_mark 1) (cl-user::quit))
-										(setq keyline (+ 1 keyline))
-										(cond ((equal keyline y) 
-											(setq nth_line3(nth keyline list2))
-											(setq keyline (+ 1 keyline))
-											(format t " ~a~%" nth_line3)
-											(return-from inner nil))
-										)									
-									)
+(if	(> the_same_counter 0)
+	(loop 
+		(setq nth_line1(nth x list1))	
+			(block inner
+				(loop
+					(setq nth_line2(nth y list2))
+					(if(not (= the_same_counter_copy 0))
+						(cond ((equal nth_line1 nth_line2) (loop
+												(setq the_same_counter_copy (- the_same_counter_copy 1))
+												(if (= y 0)(format t " ~a~%" nth_line2))
+												(if (= y 0)(return-from inner nil))
+												(setq nth_line3(nth keyline list2)) 
+												(if (and (not (equal nth_line3 nil))(not(= keyline (- counter2 1)))) (format t "~C[32m+~a~%~C[00m" #\ESC nth_line3 #\ESC))
+												(if (= keyline (- counter2 1)) (format t " ~a~%" nth_line3))
+												(if (= keyline (- counter2 1)) (setq end_mark(+ end_mark 1)))
+												(if (= end_mark 1) (cl-user::quit))
+												(setq keyline (+ 1 keyline))
+												(cond ((equal keyline y) 
+													(setq nth_line3(nth keyline list2))
+													(setq keyline (+ 1 keyline))
+													;(if (= y 0) (return-from inner nil))
+													(format t " ~a~%" nth_line3)
+													(return-from inner nil))
+												)									
+											)
+							)
+						)
 					)
+					(if (= the_same_counter_copy 0)
+						(loop 
+								(setq nth_line1(nth x list1))	
+								(setq nth_line2(nth y list2))
+								(cond ((and (> counter1 counter2) (= y (- counter2 1))) (loop 
+																								(if (= first_enter_in 1)(format t "~C[32m+~a~%~C[00m" #\ESC nth_line2 #\ESC))
+																								(setq first_enter_in 0)
+																								(setq nth_line1(nth x list1))
+																								(format t "~C[31m-~a~%~C[00m" #\ESC nth_line1 #\ESC)
+																								(if (equal x (- counter1 1)) (return nil))
+																								(setq x (+ 1 x))
+																								)
+																	
+										)
+									((and (< counter1 counter2) (= x (- counter1 1))) (loop 
+																								(if (= first_enter_in 1)(format t "~C[31m-~a~%~C[00m" #\ESC nth_line1 #\ESC))
+																								(setq first_enter_in 0)			
+																								(setq nth_line2(nth y list2))
+																								(format t "~C[32m+~a~%~C[00m" #\ESC nth_line2 #\ESC)
+																								(if (equal y (- counter2 1)) (return nil))
+																								(setq y (+ 1 y))
+																								)
+																	
+									)							
+									((and (< x (- counter1 1)) (< y (- counter2 1)))
+										(format t "~C[31m-~a~%~C[00m" #\ESC nth_line1 #\ESC)
+										(format t "~C[32m+~a~%~C[00m" #\ESC nth_line2 #\ESC)			
+										)
+									((and (= x (- counter1 1)) (= y (- counter2 1)))
+										(format t "~C[31m-~a~%~C[00m" #\ESC nth_line1 #\ESC)
+										(format t "~C[32m+~a~%~C[00m" #\ESC nth_line2 #\ESC)	
+										(cl-user::quit)				
+										)				
+								)
+										(setq x (+ 1 x))
+										(setq y (+ 1 y))			
+								
+								(if (and (= x (- counter1 1)) (= y (- counter2 1))) (cl-user::quit))
+
+						)								
+					)					
+					(if (equal y (- counter2 1)) (return nil))
+					(setq y (+ 1 y))
 				)
-				(if (equal y counter2) (return nil))
-				(setq y (+ 1 y))
 			)
+		(if (equal y (- counter2 1))
+			(format t "~C[31m-~a~%~C[00m" #\ESC nth_line1 #\ESC)		
 		)
-	(if (equal y counter2)
-		(format t "~C[31m-~a~%~C[00m" #\ESC nth_line1 #\ESC)		
-	)
-	(setq y keyline)
-	(if (equal x counter1) (return nil))
-	(setq x (+ 1 x))
-)	
-			
+		(setq y keyline)
+		(if (equal x (- counter1 1)) (return nil))
+		(setq x (+ 1 x))
+	)	
+)
+	
+(if	(= the_same_counter 0)
+	(loop 
+		(setq nth_line1(nth x list1))	
+		(setq nth_line2(nth y list2))
+		(cond ((and (> counter1 counter2) (= y (- counter2 1))) (loop 
+																		(if (= first_enter_in 1)(format t "~C[32m+~a~%~C[00m" #\ESC nth_line2 #\ESC))
+																		(setq first_enter_in 0)
+																		(setq nth_line1(nth x list1))
+																		(format t "~C[31m-~a~%~C[00m" #\ESC nth_line1 #\ESC)
+																		(if (equal x (- counter1 1)) (return nil))
+																		(setq x (+ 1 x))
+																		)
+											
+				)
+			((and (< counter1 counter2) (= x (- counter1 1))) (loop 
+																		(if (= first_enter_in 1)(format t "~C[31m-~a~%~C[00m" #\ESC nth_line1 #\ESC))
+																		(setq first_enter_in 0)			
+																		(setq nth_line2(nth y list2))
+																		(format t "~C[32m+~a~%~C[00m" #\ESC nth_line2 #\ESC)
+																		(if (equal y (- counter2 1)) (return nil))
+																		(setq y (+ 1 y))
+																		)
+											
+			)							
+			((and (< x (- counter1 1)) (< y (- counter2 1)))
+				(format t "~C[31m-~a~%~C[00m" #\ESC nth_line1 #\ESC)
+				(format t "~C[32m+~a~%~C[00m" #\ESC nth_line2 #\ESC)			
+				)
+			((and (= x (- counter1 1)) (= y (- counter2 1)))
+				(format t "~C[31m-~a~%~C[00m" #\ESC nth_line1 #\ESC)
+				(format t "~C[32m+~a~%~C[00m" #\ESC nth_line2 #\ESC)	
+				(cl-user::quit)				
+				)				
+		)
+				(setq x (+ 1 x))
+				(setq y (+ 1 y))			
+		
+		(if (and (= x (- counter1 1)) (= y (- counter2 1))) (cl-user::quit))
+
+	)	
+)
+	
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;以下是失敗之作;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;	
 	;(defun without-last(list)
 	;	(reverse (cdr (reverse list)))
